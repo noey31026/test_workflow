@@ -30,6 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: ⏱️ Wait 10 seconds
+        run: sleep 10
+
       - name: ▶️ Run iOS Smoke Tests
         run: echo "🖥️ iOS tests running…"
 
@@ -44,5 +48,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: ⏱️ Wait 10 seconds
+        run: sleep 10
+
       - name: ▶️ Run Android Smoke Tests
         run: echo "🤖 Android tests running…"
