@@ -2,6 +2,16 @@ name: 📱 Mobile Smoke Tests
 
 on:
   push:
+    branches:
+      - master
+
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
 
   workflow_dispatch:
     inputs:
@@ -20,8 +30,7 @@ concurrency:
 
 jobs:
   android-tests:
-    # Always run Android on PRs, or if manually selected
-    if: github.event_name == 'pull_request' || inputs.run_android
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || inputs.run_android
     runs-on: [self-hosted, lambdatest]
     steps:
       - uses: actions/checkout@v4
@@ -30,9 +39,9 @@ jobs:
           echo "Running Android Smoke Tests"
 
   ios-tests:
-    # Run on PRs after Android completes, or if manually selected alone
-    if: github.event_name == 'pull_request' || inputs.run_ios
-    needs: ${{ (github.event_name == 'pull_request' && 'android-tests') || '' }}
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || inputs.run_ios
+    # require Android only when this was auto-triggered (PR or push)
+    needs: ${{ github.event_name != 'workflow_dispatch' && 'android-tests' || '' }}
     runs-on: [self-hosted, lambdatest]
     steps:
       - uses: actions/checkout@v4
