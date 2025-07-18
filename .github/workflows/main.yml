@@ -1,27 +1,45 @@
-name: Mobile Device Tests
+name: 📱 Mobile Smoke Tests
 
 on:
   pull_request:
+    branches: [master]
+    paths:
+      - 'tests/ui-tests/**'
     types: [opened, synchronize, reopened]
+
   workflow_dispatch:
     inputs:
-      skip_android:
-        description: "Skip Android tests?"
-        required: false
-        default: 'false'
+      run_android:
+        description: 'Run Android Tests'
+        type: boolean
+        default: false
+      run_ios:
+        description: 'Run iOS Tests'
+        type: boolean
+        default: false
+
+concurrency:
+  group: mobile-tests-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   android-tests:
-    if: github.event_name == 'pull_request' && inputs.skip_android != 'true'
-    runs-on: ubuntu-latest
+    # Always run Android on PRs, or if manually selected
+    if: github.event_name == 'pull_request' || inputs.run_android
+    runs-on: [self-hosted, lambdatest]
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Running Android…"
+      - name: ▶️ Run Android UI tests
+        run: |
+          echo "Running Android Smoke Tests"
 
   ios-tests:
-    needs: android-tests
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.skip_android == 'true')
-    runs-on: macos-latest
+    # Run on PRs after Android completes, or if manually selected alone
+    if: github.event_name == 'pull_request' || inputs.run_ios
+    needs: ${{ (github.event_name == 'pull_request' && 'android-tests') || '' }}
+    runs-on: [self-hosted, lambdatest]
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Running iOS…"
+      - name: ▶️ Run iOS UI tests
+        run: |
+          echo "Running iOS Smoke Tests"
