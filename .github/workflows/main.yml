@@ -17,32 +17,29 @@ on:
         type: boolean
         default: true
 
-concurrency:
-  group: mobile-tests-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   android-tests:
     if: |
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       inputs.run_android
-    runs-on: ubuntu-latest              # ← use GitHub-hosted, not Lambdatest
+    concurrency: mobile-device-resource # shared resource
+    runs-on: [self-hosted, lambdatest]
     steps:
       - uses: actions/checkout@v4
-      - name: ▶️ Run Android Smoke Tests
+      - name: ▶️ Run Android UI tests
         run: |
-          echo "Running Android Smoke Tests on ubuntu-latest"
+          echo "Running Android Smoke Tests"
 
   ios-tests:
-    needs: android-tests
     if: |
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       inputs.run_ios
-    runs-on: [self-hosted, lambdatest]  # ← only iOS hits your Lambdatest pool
+    concurrency: mobile-device-resource # same shared resource
+    runs-on: [self-hosted, lambdatest]
     steps:
       - uses: actions/checkout@v4
-      - name: ▶️ Run iOS Smoke Tests
+      - name: ▶️ Run iOS UI tests
         run: |
-          echo "Running iOS Smoke Tests on Lambdatest"
+          echo "Running iOS Smoke Tests"
