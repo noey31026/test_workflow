@@ -1,11 +1,7 @@
 name: 📱 Mobile Smoke Tests
 
 on:
-  pull_request:
-    branches: [master]
-    paths:
-      - 'tests/ui-tests/**'
-    types: [opened, synchronize, reopened]
+  push:
 
   workflow_dispatch:
     inputs:
