@@ -20,32 +20,28 @@ on:
 
 jobs:
   ios-tests:
-    # guard: run on push/PR always, or if manually ticked
     if: |
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       inputs.run_ios
-    # **job-level** concurrency group: only one "mobile-device" job
     concurrency:
       group: mobile-device-${{ github.ref }}
       cancel-in-progress: false
-    runs-on: [ self-hosted, lambdatest ]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: ▶️ Run iOS Smoke Tests
         run: echo "🖥️ iOS tests running…"
 
   android-tests:
-    # same guard for push/PR or manual tick
     if: |
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       inputs.run_android
-    # **same** concurrency group — this job will queue until ios-tests releases it
     concurrency:
       group: mobile-device-${{ github.ref }}
       cancel-in-progress: false
-    runs-on: [ self-hosted, lambdatest ]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: ▶️ Run Android Smoke Tests
