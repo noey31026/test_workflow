@@ -1,45 +1,52 @@
+# .github/workflows/mobile-smoke-tests.yml
 name: 📱 Mobile Smoke Tests
 
 on:
   push:
-    branches: [main]
+    branches: [ master ]
   pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+    branches: [ master ]
+    types: [ opened, synchronize, reopened ]
   workflow_dispatch:
     inputs:
-      run_android:
-        description: 'Run Android Tests'
-        type: boolean
-        default: true
       run_ios:
         description: 'Run iOS Tests'
         type: boolean
         default: true
+      run_android:
+        description: 'Run Android Tests'
+        type: boolean
+        default: true
 
 jobs:
-  android-tests:
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
-      inputs.run_android
-    concurrency: mobile-device-resource # shared resource
-    runs-on: [self-hosted, lambdatest]
-    steps:
-      - uses: actions/checkout@v4
-      - name: ▶️ Run Android UI tests
-        run: |
-          echo "Running Android Smoke Tests"
-
   ios-tests:
+    # guard: run on push/PR always, or if manually ticked
     if: |
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       inputs.run_ios
-    concurrency: mobile-device-resource # same shared resource
-    runs-on: [self-hosted, lambdatest]
+    # **job-level** concurrency group: only one "mobile-device" job
+    concurrency:
+      group: mobile-device-${{ github.ref }}
+      cancel-in-progress: false
+    runs-on: [ self-hosted, lambdatest ]
     steps:
       - uses: actions/checkout@v4
-      - name: ▶️ Run iOS UI tests
-        run: |
-          echo "Running iOS Smoke Tests"
+      - name: ▶️ Run iOS Smoke Tests
+        run: echo "🖥️ iOS tests running…"
+
+  android-tests:
+    # same guard for push/PR or manual tick
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      inputs.run_android
+    # **same** concurrency group — this job will queue until ios-tests releases it
+    concurrency:
+      group: mobile-device-${{ github.ref }}
+      cancel-in-progress: false
+    runs-on: [ self-hosted, lambdatest ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: ▶️ Run Android Smoke Tests
+        run: echo "🤖 Android tests running…"
