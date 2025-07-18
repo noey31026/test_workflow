@@ -1,1 +1,31 @@
+name: Mobile Device Tests
 
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+# prevent Android & iOS from running in parallel on the same PR/branch
+concurrency:
+  group: mobile-tests-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ▶️ Run Android UI tests
+        run: |
+          echo "Starting Android tests…"
+          # your emulator/device-farm commands here
+
+  ios-tests:
+    needs: android-tests       # enforces “Android → iOS” ordering
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ▶️ Run iOS UI tests
+        run: |
+          echo "Starting iOS tests…"
+          # your simulator/device-farm commands here
