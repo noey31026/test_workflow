@@ -2,27 +2,20 @@ name: 📱 Mobile Smoke Tests
 
 on:
   push:
-    branches:
-      - master
-
+    branches: [master]
   pull_request:
-    branches:
-      - master
-    types:
-      - opened
-      - synchronize
-      - reopened
-
+    branches: [master]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       run_android:
         description: 'Run Android Tests'
         type: boolean
-        default: true      # ← ticked by default
+        default: true
       run_ios:
         description: 'Run iOS Tests'
         type: boolean
-        default: true      # ← ticked by default
+        default: true
 
 concurrency:
   group: mobile-tests-${{ github.ref }}
@@ -34,22 +27,22 @@ jobs:
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       inputs.run_android
-    runs-on: [self-hosted, lambdatest]
+    runs-on: ubuntu-latest              # ← use GitHub-hosted, not Lambdatest
     steps:
       - uses: actions/checkout@v4
-      - name: ▶️ Run Android UI tests
+      - name: ▶️ Run Android Smoke Tests
         run: |
-          echo "Running Android Smoke Tests"
+          echo "Running Android Smoke Tests on ubuntu-latest"
 
   ios-tests:
-    needs: android-tests           # must be a static job name
+    needs: android-tests
     if: |
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       inputs.run_ios
-    runs-on: [self-hosted, lambdatest]
+    runs-on: [self-hosted, lambdatest]  # ← only iOS hits your Lambdatest pool
     steps:
       - uses: actions/checkout@v4
-      - name: ▶️ Run iOS UI tests
+      - name: ▶️ Run iOS Smoke Tests
         run: |
-          echo "Running iOS Smoke Tests"
+          echo "Running iOS Smoke Tests on Lambdatest"
