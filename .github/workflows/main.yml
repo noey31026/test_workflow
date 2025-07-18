@@ -18,11 +18,11 @@ on:
       run_android:
         description: 'Run Android Tests'
         type: boolean
-        default: false
+        default: true      # ← ticked by default
       run_ios:
         description: 'Run iOS Tests'
         type: boolean
-        default: false
+        default: true      # ← ticked by default
 
 concurrency:
   group: mobile-tests-${{ github.ref }}
@@ -30,7 +30,10 @@ concurrency:
 
 jobs:
   android-tests:
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || inputs.run_android
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      inputs.run_android
     runs-on: [self-hosted, lambdatest]
     steps:
       - uses: actions/checkout@v4
@@ -39,9 +42,11 @@ jobs:
           echo "Running Android Smoke Tests"
 
   ios-tests:
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || inputs.run_ios
-    # require Android only when this was auto-triggered (PR or push)
-    needs: ${{ github.event_name != 'workflow_dispatch' && 'android-tests' || '' }}
+    needs: android-tests           # must be a static job name
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      inputs.run_ios
     runs-on: [self-hosted, lambdatest]
     steps:
       - uses: actions/checkout@v4
